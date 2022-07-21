@@ -1,0 +1,76 @@
+-- #1  
+-- How many students are majoring in History? 
+use UMD_Departments; 
+CREATE OR REPLACE VIEW history_major_student AS
+	SELECT ROW_NUMBER() OVER(ORDER BY major_name) AS "Row_Number", CONCAT(first_name , " " , last_name) AS "Student Name"
+	FROM major  
+		JOIN enrollment USING (major_id)
+        JOIN student USING (student_id)
+	WHERE major_name = "History";
+    
+    
+-- #2
+-- How many students have a GPA of 3.0 and higher? 
+CREATE OR REPLACE VIEW high_gpa_student AS
+SELECT CONCAT(first_name , " " , last_name) AS "Student Name", gpa_cumulative
+FROM student
+	JOIN academics USING (academic_id)
+WHERE gpa_cumulative >= 3.0;
+
+
+-- #3
+-- List of students who have B.S degree
+CREATE OR REPLACE VIEW bs_degrees AS
+SELECT  CONCAT(first_name ," ", last_name) AS "Student Name", student_id AS "Student ID" , major_name AS "Major"
+FROM student
+	JOIN enrollment
+		USING (student_id)
+	JOIN major 
+		USING(major_id) 
+WHERE
+	academic_id IN (
+    SELECT 
+		academic_id
+    FROM
+		academics
+	WHERE
+		degree="B.S"
+    )
+ORDER BY major_name;
+
+
+-- #4
+-- What is the average cumulative GPA of each school in UMD?
+CREATE OR REPLACE VIEW avg_school_gpa AS
+SELECT school.name AS school, FORMAT(AVG(gpa_cumulative),3) AS average_gpa
+FROM school 
+	JOIN major 
+		USING(school_id)
+	JOIN enrollment
+		USING (major_id)
+	JOIN student 
+		USING(student_id)
+	JOIN academics 
+		USING(academic_id)
+GROUP BY school;
+
+
+-- #5
+-- The number of students t Male/Female in each school
+CREATE OR REPLACE VIEW gender_count AS
+SELECT school_id AS "School ID", school.name AS "School Name", gender AS "Gender", COUNT(student_id) AS "Student Count"
+FROM student 
+	JOIN enrollment
+		USING (student_id)
+	JOIN major
+		USING (major_id)
+	JOIN school 
+		USING (school_id)
+GROUP BY school_id, school.name, gender;
+
+
+
+
+
+
+
